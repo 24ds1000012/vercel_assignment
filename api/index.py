@@ -1,19 +1,30 @@
 import json
+from urllib.parse import parse_qs
 
-def handler(request, response):
-    from urllib.parse import parse_qs
+def handler(request):
+    # Enable CORS in response headers
+    headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json"
+    }
 
-    # Enable CORS
-    response.headers['Access-Control-Allow-Origin'] = '*'
-
-    # Parse query params
-    query_params = parse_qs(request.query_string.decode())
+    # Parse query parameters
+    query_params = parse_qs(request["queryString"] or "")
     names = query_params.get("name", [])
 
-    # Load student data
-    with open("q-vercel-python.json") as f:
-        data = json.load(f)
+    # Load student data from JSON file
+    try:
+        with open("api/q-vercel-python.json") as f:
+            data = json.load(f)
+        marks = [data.get(name, None) for name in names]
+        body = json.dumps({"marks": marks})
+        status_code = 200
+    except Exception as e:
+        body = json.dumps({"error": str(e)})
+        status_code = 500
 
-    marks = [data.get(name, None) for name in names]
-
-    return response.json({"marks": marks})
+    return {
+        "statusCode": status_code,
+        "headers": headers,
+        "body": body
+    }
