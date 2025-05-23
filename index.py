@@ -9,7 +9,7 @@ def handler(request):
     }
 
     # Parse query parameters
-    query_params = parse_qs(request["queryString"] or "")
+    query_params = parse_qs(request.get("queryString", ""))
     names = query_params.get("name", [])
 
     # Load student data from JSON file
